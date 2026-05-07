@@ -1,0 +1,220 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+/* ============================================================
+   SPOTLIGHT — "Afterglow" design system
+   A nightlife/festival look: deep canvases, an indigo→magenta→pink
+   accent gradient, glassy surfaces and soft glow. Fully themeable —
+   every token resolves to a CSS variable that flips with [data-theme].
+   ============================================================ */
+@theme {
+  --color-canvas: var(--c-canvas);
+  --color-bg: var(--c-surface);
+  --color-bg-2: var(--c-surface-2);
+  --color-bg-3: var(--c-surface-3);
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-ink-3: var(--c-ink-3);
+  --color-line: var(--c-line);
+  --color-line-soft: var(--c-line-soft);
+  --color-rausch: var(--c-accent);
+  --color-rausch-dark: var(--c-accent-2);
+  --color-accent2: var(--c-accent-3);
+
+  --font-ui: "Manrope", -apple-system, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Manrope", system-ui, sans-serif;
+}
+
+:root,
+[data-theme="light"] {
+  --c-canvas: #eeeafb;
+  --c-surface: #ffffff;
+  --c-surface-2: #f5f2fd;
+  --c-surface-3: #e9e5f8;
+  --c-ink: #150f22;
+  --c-ink-2: #4c4660;
+  --c-ink-3: #8b8499;
+  --c-line: #e6e1f3;
+  --c-line-soft: #f1edfb;
+  --c-accent: #74747f;
+  --c-accent-2: #868692;
+  --c-accent-3: #9a9aa6;
+  --c-glow: rgba(20, 16, 34, 0.16);
+  --c-pin-active: #3f7bff;
+  --c-pin-halo: rgba(63, 123, 255, 0.3);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --c-canvas: #07060c;
+  --c-surface: #15141d;
+  --c-surface-2: #20202d;
+  --c-surface-3: #2c2c3c;
+  --c-ink: #f7f6fb;
+  --c-ink-2: #d4d1e0;
+  --c-ink-3: #9d9aab;
+  --c-line: #30303f;
+  --c-line-soft: #24242f;
+  --c-accent: #7c7b8c;
+  --c-accent-2: #8f8e9f;
+  --c-accent-3: #a3a2b2;
+  --c-glow: rgba(0, 0, 0, 0.45);
+  --c-pin-active: #5b93ff;
+  --c-pin-halo: rgba(91, 147, 255, 0.5);
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--c-canvas);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background 0.4s ease;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh; /* correct height on mobile (excludes browser chrome) */
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ---- accent helpers ---- */
+.accent-grad {
+  background-image: linear-gradient(120deg, var(--c-accent), var(--c-accent-2));
+}
+.accent-text {
+  background-image: linear-gradient(115deg, var(--c-accent), var(--c-accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.accent-ring {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-accent) 40%, transparent);
+}
+.glow {
+  box-shadow: 0 14px 38px -12px var(--c-glow);
+}
+/* ticket-purchase buttons — blue, to stand out from the neutral UI */
+.buy-primary {
+  background-image: linear-gradient(120deg, #2f6bff, #4d8bff);
+  color: #fff;
+  box-shadow: 0 12px 30px -10px rgba(47, 107, 255, 0.55);
+}
+.buy-secondary {
+  border: 1.5px solid #3f7bff;
+  color: #4d8bff;
+}
+.glass {
+  background: color-mix(in srgb, var(--c-surface) 76%, transparent);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  box-shadow: 0 8px 30px -16px rgba(20, 10, 40, 0.35);
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.live-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+/* ---------------- Leaflet map + thumbnail pins --------------- */
+.leaflet-container {
+  background: var(--c-surface-3);
+  font-family: var(--font-ui);
+  width: 100%;
+  height: 100%;
+}
+.leaflet-control-attribution {
+  font-size: 8px !important;
+  background: color-mix(in srgb, var(--c-surface) 60%, transparent) !important;
+  color: var(--c-ink-3) !important;
+}
+.leaflet-control-attribution a { color: var(--c-ink-2) !important; }
+.leaflet-control-zoom { display: none; }
+/* CARTO dark tiles are near-black — lighten just the basemap in dark mode so
+   the map reads as a soft charcoal, not pitch black (pins/controls unaffected) */
+[data-theme="dark"] .leaflet-tile {
+  filter: brightness(1.55) contrast(0.92) saturate(1.05);
+}
+
+.photo-pin {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background-color: var(--c-surface-3);
+  background-size: cover;
+  background-position: center;
+  /* white ring pops on the dark basemap; the hairline + drop shadow keep it
+     readable on the light basemap too */
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  transform-origin: center bottom;
+}
+.photo-pin:hover { transform: scale(1.1); }
+.photo-pin.active {
+  border-color: var(--c-pin-active);
+  transform: scale(1.26);
+  z-index: 1000;
+  box-shadow: 0 0 0 4px var(--c-pin-halo), 0 8px 22px rgba(0, 0, 0, 0.55);
+}
+.photo-pin--empty {
+  background-image: linear-gradient(135deg, var(--c-accent), var(--c-accent-3));
+}
+.photo-pin.live::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--c-accent-3);
+  border: 2px solid var(--c-surface);
+}
+/* count badge for a pin that stands in for several shows at one spot */
+.pin-count {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--c-pin-active);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.pin-wrap {
+  background: transparent !important;
+  border: none !important;
+}
