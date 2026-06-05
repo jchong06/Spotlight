@@ -1,0 +1,32 @@
+# Fly.io config for Spotlight.
+# Rename `app` to something unique (fly launch will offer to do this), then:
+#   fly volumes create spotlight_data --size 1
+#   fly secrets set TM_KEY=... SEATGEEK_CLIENT_ID=...
+#   fly deploy
+app = "spotlight-edm-30822"
+primary_region = "ewr"
+
+[build]
+
+[env]
+  PORT = "8080"
+  DB_PATH = "/data/spotlight.db"
+
+# persistent disk so accounts + favorites survive restarts/redeploys
+[mounts]
+  source = "spotlight_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/"
+    timeout = "5s"
