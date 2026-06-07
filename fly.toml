@@ -5,7 +5,10 @@
 # The Supabase URL + anon key are public, so pass them as build args
 # (they get baked into the static bundle by Vite):
 #   fly deploy --build-arg VITE_SUPABASE_URL=... --build-arg VITE_SUPABASE_ANON_KEY=...
-# Accounts + favorites live in Supabase, so no persistent volume is needed.
+# Accounts + favorites live in Supabase now, so the app no longer writes to a
+# volume. The existing `spotlight_data` volume is left declared (and unused)
+# only because this machine was created with it; it can be removed later by
+# destroying the volume. The app itself stores nothing on disk.
 app = "spotlight-edm-30822"
 primary_region = "ewr"
 
@@ -13,6 +16,10 @@ primary_region = "ewr"
 
 [env]
   PORT = "8080"
+
+[mounts]
+  source = "spotlight_data"
+  destination = "/data"
 
 [http_service]
   internal_port = 8080
