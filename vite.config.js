@@ -1,9 +1,10 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import apiPlugin from "./server/api-plugin.js";
 
 // Local proxy so the browser never sees the API keys and we dodge CORS.
+// Accounts + favorites are handled directly by Supabase from the browser, so
+// the dev server only proxies the external event APIs below.
 //  /api/tm  -> Ticketmaster Discovery  (injects apikey)
 //  /api/sg  -> SeatGeek Platform       (injects client_id)
 export default defineConfig(({ mode }) => {
@@ -21,7 +22,7 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
-    plugins: [react(), tailwindcss(), apiPlugin()],
+    plugins: [react(), tailwindcss()],
     server: {
       host: true,
       port: 5173,

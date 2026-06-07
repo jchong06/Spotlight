@@ -1,19 +1,25 @@
 // ============================================================
 //  Spotlight — standalone production server (no framework, no runtime deps).
 //
-//  Serves the built frontend (dist/) and the same API as the dev plugin:
-//    /api/auth/*       -> accounts (SQLite)
-//    /api/favorites/*  -> per-account saved shows (SQLite)
+//  Serves the built frontend (dist/) plus the external-API proxy:
 //    /api/{tm,sg,bit,attr,venues} -> external APIs with key injection
 //
-//  Run after `npm run build`:  node server/index.js   (PORT, DB_PATH via env)
+//  Accounts + favorites are handled directly by Supabase from the browser
+//  (see src/auth.js), so this server is now stateless.
+//
+//  Run after `npm run build`:  node server/index.js   (PORT via env)
 // ============================================================
 import http from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { join, normalize, extname, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { authRoutes, favoritesRoutes, send } from "./handlers.js";
 import { tryProxy } from "./proxy.js";
+
+function send(res, code, body) {
+  res.statusCode = code;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(body));
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const DIST = join(here, "..", "dist");
@@ -56,8 +62,6 @@ async function serveStatic(req, res) {
 const server = http.createServer(async (req, res) => {
   const path = new URL(req.url, "http://internal").pathname;
   try {
-    if (path.startsWith("/api/auth")) return authRoutes(req, res, path.slice("/api/auth".length) || "/");
-    if (path.startsWith("/api/favorites")) return favoritesRoutes(req, res, path.slice("/api/favorites".length) || "/");
     if (path.startsWith("/api/")) {
       if (tryProxy(req, res)) return;
       return send(res, 404, { error: "Not found" });

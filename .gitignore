@@ -9,10 +9,6 @@ dist
 .env.local
 .env.*.local
 
-# local database (accounts + favorites)
-server/*.db
-server/*.db-*
-
 # misc
 .DS_Store
 *.log

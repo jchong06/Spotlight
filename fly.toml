@@ -1,8 +1,11 @@
 # Fly.io config for Spotlight.
 # Rename `app` to something unique (fly launch will offer to do this), then:
-#   fly volumes create spotlight_data --size 1
 #   fly secrets set TM_KEY=... SEATGEEK_CLIENT_ID=...
 #   fly deploy
+# The Supabase URL + anon key are public, so pass them as build args
+# (they get baked into the static bundle by Vite):
+#   fly deploy --build-arg VITE_SUPABASE_URL=... --build-arg VITE_SUPABASE_ANON_KEY=...
+# Accounts + favorites live in Supabase, so no persistent volume is needed.
 app = "spotlight-edm-30822"
 primary_region = "ewr"
 
@@ -10,12 +13,6 @@ primary_region = "ewr"
 
 [env]
   PORT = "8080"
-  DB_PATH = "/data/spotlight.db"
-
-# persistent disk so accounts + favorites survive restarts/redeploys
-[mounts]
-  source = "spotlight_data"
-  destination = "/data"
 
 [http_service]
   internal_port = 8080
