@@ -1,5 +1,7 @@
 # Spotlight
 
+**[Live demo →](https://spotlight-edm-30822.fly.dev)**
+
 Find live **EDM shows** near you. A mobile-style React app that aggregates real
 events from **Ticketmaster** and **SeatGeek**, with a map, date/area filters,
 fuzzy artist & venue search, light/dark themes, and favorites.
