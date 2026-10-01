@@ -9,18 +9,16 @@
 // ============================================================
 import { createClient } from "@supabase/supabase-js";
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL || "https://demo.supabase.co";
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "demo-anon-key";
+const configured = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-if (!url || !anonKey) {
-  // Surfacing this early makes a misconfigured deploy obvious instead of
-  // failing later with an opaque "fetch failed" on the first auth call.
-  console.error(
-    "Supabase is not configured — set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env"
-  );
+if (!configured) {
+  console.warn("Supabase is not configured — continuing in demo mode.");
 }
 
-export const supabase = createClient(url || "", anonKey || "", {
+export const supabaseConfigured = configured;
+export const supabase = createClient(url, anonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,

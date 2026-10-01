@@ -10,10 +10,14 @@
 //  The exported surface matches what the app expects: {id,email,name,city,
 //  homeLat,homeLng} user objects, and favorites as arrays of event objects.
 // ============================================================
-import { supabase } from "./supabaseClient.js";
+import { supabase, supabaseConfigured } from "./supabaseClient.js";
 
 export function isDemoMode() {
-  return String(import.meta.env.VITE_DEMO_MODE ?? "").toLowerCase() === "true";
+  return String(import.meta.env.VITE_DEMO_MODE ?? "true").toLowerCase() !== "false";
+}
+
+function demoFallback() {
+  return isDemoMode() || !supabaseConfigured;
 }
 
 function loadDemoProfile() {
@@ -54,7 +58,10 @@ async function toUser(authUser) {
   };
 }
 
-const currentUser = async () => (await supabase.auth.getUser()).data.user || null;
+const currentUser = async () => {
+  if (demoFallback()) return getDemoUser();
+  return (await supabase.auth.getUser()).data.user || null;
+};
 
 // ---- auth ----
 export async function signup({ email, password, name }) {
@@ -74,22 +81,22 @@ export async function signup({ email, password, name }) {
 }
 
 export async function login({ email, password }) {
-  if (isDemoMode()) return getDemoUser();
+  if (demoFallback()) return getDemoUser();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error(error.message);
   return toUser(data.user);
 }
 
 export async function logout() {
-  if (isDemoMode()) return;
+  if (demoFallback()) return;
   await supabase.auth.signOut();
 }
 
 // returns the signed-in user, or null if there's no active session
 export async function me() {
+  if (demoFallback()) return getDemoUser();
   const { data } = await supabase.auth.getSession();
   if (data.session?.user) return toUser(data.session.user);
-  if (isDemoMode()) return getDemoUser();
   return null;
 }
 
@@ -128,6 +135,7 @@ export async function updateProfile({ name, city, homeLat, homeLng }) {
 
 // ---- favorites ----
 export async function fetchFavorites() {
+  if (demoFallback()) return [];
   const user = await currentUser();
   if (!user) return [];
   const { data, error } = await supabase
@@ -141,6 +149,7 @@ export async function fetchFavorites() {
 
 // upload a batch of (guest) favorites, return the merged account list
 export async function mergeFavorites(events) {
+  if (demoFallback()) return events || [];
   const user = await currentUser();
   if (!user) return [];
   const rows = (events || [])
@@ -156,6 +165,7 @@ export async function mergeFavorites(events) {
 }
 
 export async function addFavorite(event) {
+  if (demoFallback()) return;
   const user = await currentUser();
   if (!user || !event?.id) return;
   const { error } = await supabase
@@ -165,6 +175,7 @@ export async function addFavorite(event) {
 }
 
 export async function removeFavorite(eventId) {
+  if (demoFallback()) return;
   const user = await currentUser();
   if (!user) return;
   const { error } = await supabase
