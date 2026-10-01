@@ -12,6 +12,30 @@
 // ============================================================
 import { supabase } from "./supabaseClient.js";
 
+export function isDemoMode() {
+  return String(import.meta.env.VITE_DEMO_MODE ?? "").toLowerCase() === "true";
+}
+
+function loadDemoProfile() {
+  try {
+    return JSON.parse(localStorage.getItem("spotlight-demo-profile") || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+
+export function getDemoUser() {
+  const profile = loadDemoProfile();
+  return {
+    id: "demo-user",
+    email: "demo@spotlight.app",
+    name: profile.name || "Demo User",
+    city: profile.city || "Brooklyn",
+    homeLat: profile.homeLat ?? profile.home_lat ?? null,
+    homeLng: profile.homeLng ?? profile.home_lng ?? null,
+  };
+}
+
 // shape a Supabase auth user + profile row into the app's user object
 async function toUser(authUser) {
   if (!authUser) return null;
@@ -34,6 +58,7 @@ const currentUser = async () => (await supabase.auth.getUser()).data.user || nul
 
 // ---- auth ----
 export async function signup({ email, password, name }) {
+  if (isDemoMode()) return getDemoUser();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -49,25 +74,47 @@ export async function signup({ email, password, name }) {
 }
 
 export async function login({ email, password }) {
+  if (isDemoMode()) return getDemoUser();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error(error.message);
   return toUser(data.user);
 }
 
 export async function logout() {
+  if (isDemoMode()) return;
   await supabase.auth.signOut();
 }
 
 // returns the signed-in user, or null if there's no active session
 export async function me() {
   const { data } = await supabase.auth.getSession();
-  if (!data.session?.user) return null;
-  return toUser(data.session.user);
+  if (data.session?.user) return toUser(data.session.user);
+  if (isDemoMode()) return getDemoUser();
+  return null;
 }
 
 export async function updateProfile({ name, city, homeLat, homeLng }) {
   const user = await currentUser();
-  if (!user) throw new Error("Not signed in");
+  if (!user) {
+    if (isDemoMode()) {
+      const base = getDemoUser();
+      const next = {
+        ...base,
+        ...(name !== undefined ? { name } : {}),
+        ...(city !== undefined ? { city } : {}),
+        ...(homeLat !== undefined ? { homeLat } : {}),
+        ...(homeLng !== undefined ? { homeLng } : {}),
+      };
+      localStorage.setItem("spotlight-demo-profile", JSON.stringify({
+        name: next.name,
+        city: next.city,
+        homeLat: next.homeLat ?? null,
+        homeLng: next.homeLng ?? null,
+      }));
+      return next;
+    }
+    throw new Error("Not signed in");
+  }
   // only send the fields that were provided; undefined = leave unchanged
   const patch = { id: user.id };
   if (name !== undefined) patch.name = name;

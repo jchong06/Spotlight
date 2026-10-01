@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { login, signup } from "../auth.js";
+import { login, signup, getDemoUser } from "../auth.js";
 
 // Full-screen login / create-account sheet. On success it hands the freshly
 // authenticated user back up to App, which merges any guest favorites and
@@ -169,6 +169,14 @@ export default function Auth({ onAuthed, onClose, initialMode = "login" }) {
             {isSignup ? "Sign in" : "Create one"}
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={() => onAuthed?.(getDemoUser())}
+          className="mt-4 w-full rounded-xl border border-line bg-bg-2 py-3 text-[15px] font-semibold text-ink active:scale-95"
+        >
+          Use as guest
+        </button>
       </div>
     </motion.div>
   );

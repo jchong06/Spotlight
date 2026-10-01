@@ -8,7 +8,7 @@ import EventDetail from "./components/EventDetail.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { fetchEvents, areaLabel } from "./api.js";
 import { DEFAULT_CENTER, DATE_PRESETS } from "./data.js";
-import { me, logout, fetchFavorites, mergeFavorites, addFavorite, removeFavorite } from "./auth.js";
+import { me, logout, fetchFavorites, mergeFavorites, addFavorite, removeFavorite, isDemoMode, getDemoUser } from "./auth.js";
 
 const favsToMap = (list) => (list || []).reduce((m, e) => { if (e?.id) m[e.id] = e; return m; }, {});
 
@@ -206,6 +206,10 @@ export default function App() {
   }, [savedMap, applyHome]);
 
   const handleLogout = useCallback(async () => {
+    if (isDemoMode()) {
+      setUser(getDemoUser());
+      return;
+    }
     await logout();
     setUser(null);
     setSavedMap({}); // account favorites stay in the DB; clear the local view
@@ -307,7 +311,7 @@ export default function App() {
                 <span className="accent-grad glow grid h-14 w-14 place-items-center rounded-2xl text-2xl font-extrabold text-white">S</span>
                 <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink-3/30 border-t-ink-3" />
               </div>
-            ) : !user ? (
+            ) : !user && !isDemoMode() ? (
               /* hard gate — no account, no app */
               <Auth onAuthed={handleAuthed} initialMode="login" />
             ) : (
