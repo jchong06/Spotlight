@@ -153,7 +153,7 @@ body {
 .leaflet-control-zoom { display: none; }
 /* CARTO dark tiles are near-black — lighten just the basemap in dark mode so
    the map reads as a soft charcoal, not pitch black (pins/controls unaffected) */
-[data-theme="dark"] .leaflet-tile {
+[data-theme="dark"] .carto-tiles .leaflet-tile {
   filter: brightness(1.55) contrast(0.92) saturate(1.05);
 }
 

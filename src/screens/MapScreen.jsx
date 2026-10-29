@@ -7,10 +7,25 @@ import DatePanel from "../components/DatePanel.jsx";
 import LocationSearch from "../components/LocationSearch.jsx";
 import { milesBetween } from "../api.js";
 
-const TILES = {
-  light: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-};
+// Mapbox basemap when a public token is configured; CARTO otherwise.
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const mapboxTiles = (style) =>
+  `https://api.mapbox.com/styles/v1/mapbox/${style}/tiles/512/{z}/{x}/{y}{r}?access_token=${MAPBOX_TOKEN}`;
+const TILES = MAPBOX_TOKEN
+  ? { light: mapboxTiles("light-v11"), dark: mapboxTiles("dark-v11") }
+  : {
+      light: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    };
+const TILE_OPTS = MAPBOX_TOKEN
+  ? {
+      attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 19,
+      className: "mapbox-tiles",
+    }
+  : { attribution: "© OpenStreetMap · © CARTO", maxZoom: 19, subdomains: "abcd", className: "carto-tiles" };
 
 export default function MapScreen({
   events, fitAll, center, loading, onOpen, selected, setSelected, onSearchArea, onSearchPlace, onShowArtist, dateRange, setDateRange, theme, onList,
@@ -40,11 +55,7 @@ export default function MapScreen({
     mapRef.current = map;
     layerRef.current = L.layerGroup().addTo(map);
 
-    tileRef.current = L.tileLayer(TILES[theme] || TILES.light, {
-      attribution: "© OpenStreetMap · © CARTO",
-      maxZoom: 19,
-      subdomains: "abcd",
-    }).addTo(map);
+    tileRef.current = L.tileLayer(TILES[theme] || TILES.light, TILE_OPTS).addTo(map);
 
     map.on("moveend", () => {
       if (programmatic.current) { programmatic.current = false; return; }

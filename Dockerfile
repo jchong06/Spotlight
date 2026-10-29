@@ -4,12 +4,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-# Supabase URL + anon key are public and must be present at build time so Vite
+# Supabase URL + anon key (and the Mapbox pk. token) are public and must be present at build time so Vite
 # can bake them into the static bundle. Pass with: fly deploy --build-arg ...
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_MAPBOX_TOKEN
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN
 RUN npm run build
 
 # ---- runtime (the server uses only Node built-ins: no prod deps) ----
